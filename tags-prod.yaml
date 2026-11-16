@@ -1,4 +1,4 @@
 # Archivo gestionado por el CI (Argo Workflows). No editar a mano.
 deployments:
   simple-python-app:
-    tag: "a1c1920"
+    tag: "3b3e566"
