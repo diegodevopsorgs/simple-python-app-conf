@@ -1,0 +1,34 @@
+# Valores de PRODUCCIÓN. Todo lo específico del entorno vive acá y sólo acá.
+# El tag de la imagen NO va acá: lo escribe el CI en tags-prod.yaml.
+
+enabled: true                       # Interruptor de toda la app. false = no se genera nada salvo los PVC
+
+ingress:                            # Ingress único de la app; requiere un controlador de Ingress en el cluster
+  enabled: false
+  hosts:                            # Cada host recibe los paths de todos los deployments habilitados
+    - simple-python-app.local
+
+deployments:                        # Un bloque por deployment; la clave es el nombre (Deployment, Service y PVC)
+  simple-python-app:
+    enabled: true                   # false = se elimina este deployment y su Service (su PVC se conserva)
+    image: diego1986/simple-python-app
+    replicas: 3                     # 0 = pausa el deployment sin borrarlo
+    port: 5000
+    paths:                          # Paths que este deployment expone en el Ingress
+      - /
+    env: []                         # Variables de entorno: [{name: X, value: "1"}] o con valueFrom
+    persistence:
+      enabled: true
+      size: 1Gi
+      mountPath: /app/data
+      # storageClass: ""            # Vacío = StorageClass por defecto del cluster
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
+    # probes:                       # Opcional, se copia tal cual al contenedor
+    #   readinessProbe:
+    #     httpGet: {path: /health, port: 5000}

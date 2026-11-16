@@ -1,0 +1,23 @@
+{{- /* Los PVC no dependen de enabled: se conservan aunque se apague la app o el deployment. */}}
+{{- range $name, $d := .Values.deployments }}
+{{- $p := $d.persistence | default dict }}
+{{- if $p.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $name }}-pvc
+  annotations:
+    # Protege los datos: Argo CD no borra este PVC ni al podar ni al dar de baja la app.
+    argocd.argoproj.io/sync-options: Delete=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- with $p.storageClass }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ required (printf "falta 'persistence.size' en deployments.%s" $name) $p.size }}
+{{- end }}
+{{- end }}

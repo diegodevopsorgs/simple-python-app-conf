@@ -1,0 +1,21 @@
+{{- if .Values.enabled }}
+{{- range $name, $d := .Values.deployments }}
+{{- if $d.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    app: {{ $name }}
+spec:
+  type: {{ $.Values.serviceType }}
+  selector:
+    app: {{ $name }}
+  ports:
+    - protocol: TCP
+      port: {{ $d.port }}
+      targetPort: {{ $d.port }}
+{{- end }}
+{{- end }}
+{{- end }}

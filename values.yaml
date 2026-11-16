@@ -1,0 +1,11 @@
+# Valores COMUNES a todos los entornos.
+# Lo que cambia por entorno (deployments, réplicas, tags, paths, hosts) va SOLO en values-<env>.yaml.
+
+imagePullPolicy: IfNotPresent
+
+# Tipo de Service de cada deployment. NodePort permite `minikube service`;
+# con Ingress en un cluster real se suele usar ClusterIP.
+serviceType: NodePort
+
+ingress:
+  className: nginx

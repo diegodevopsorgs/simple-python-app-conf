@@ -1,0 +1,52 @@
+{{- if (required "falta 'enabled' en values-<env>.yaml" .Values.enabled) }}
+{{- range $name, $d := (required "falta 'deployments' en values-<env>.yaml" .Values.deployments) }}
+{{- if $d.enabled }}
+{{- $p := $d.persistence | default dict }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    app: {{ $name }}
+spec:
+  replicas: {{ required (printf "falta 'replicas' en deployments.%s" $name) $d.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+    spec:
+      containers:
+        - name: {{ $name }}
+          image: "{{ required (printf "falta 'image' en deployments.%s" $name) $d.image }}:{{ required (printf "falta 'tag' en deployments.%s (lo escribe el CI en tags-<env>.yaml)" $name) $d.tag }}"
+          imagePullPolicy: {{ $.Values.imagePullPolicy }}
+          ports:
+            - containerPort: {{ required (printf "falta 'port' en deployments.%s" $name) $d.port }}
+          {{- with $d.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $d.probes }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+          {{- with $d.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if $p.enabled }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ $p.mountPath }}
+          {{- end }}
+      {{- if $p.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ $name }}-pvc
+      {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
